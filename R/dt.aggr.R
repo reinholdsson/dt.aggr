@@ -28,7 +28,7 @@ mtd_interval <- function(date, yt = 0) c(date + 1 - day(date) + years(yt), date 
 ytd_interval <- function(date, yt = 0) c(as.Date(paste0(year(date) + yt, "-01-01")), date + years(yt))
 
 #' @export
-calculate_xtd <- function(x, date_col, last_date, fun = .N, fun.label = 'N, %s', ...) {
+calculate_xtd <- function(x, date_col, last_date, fun = .N, ...) {
 	dt <- copy(x) # should at least select only relevant columns
   setnames(dt, date_col, "..date..")
 	# Should use get (with envir) or quote/eval instead of setnames
@@ -59,9 +59,9 @@ calculate_xtd <- function(x, date_col, last_date, fun = .N, fun.label = 'N, %s',
     res,
     c('N_t1', 'N_t0', 'MTD_t1', 'MTD_t0', 'YTD_t1', 'YTD_t0'),
     c(
-      sprintf(fun.label, as.character(c(last_date, last_date - years(1)))),
-      paste('MTD,', format(c(last_date, last_date - years(1)), '%Y-%m')),
-      paste('YTD,', format(c(last_date, last_date - years(1)), '%Y'))
+      as.character(c(last_date, last_date - years(1))),
+      format(c(last_date, last_date - years(1)), '%Y-%m'),
+      format(c(last_date, last_date - years(1)), '%Y')
     )
   )
   
