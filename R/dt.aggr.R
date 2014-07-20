@@ -28,14 +28,14 @@ mtd_interval <- function(date, yt = 0) c(date + 1 - day(date) + years(yt), date 
 ytd_interval <- function(date, yt = 0) c(as.Date(paste0(year(date) + yt, "-01-01")), date + years(yt))
 
 #' @export
-calculate_xtd <- function(x, date_col, last_date, fun = .N, ...) {
+calculate_xtd <- function(x, date.col, final.date = max(x[[date.col]]), fun = .N, ...) {
 	dt <- copy(x) # should at least select only relevant columns
-  setnames(dt, date_col, "..date..")
+  setnames(dt, date.col, "..date..")
 	# Should use get (with envir) or quote/eval instead of setnames
   # But currently don't know how to solve this nicely.
   setkey(dt, ..date..)
   
-	d <- as.Date(last_date)
+	d <- as.Date(final.date)
 	env <- environment()
 	fun <- substitute(fun)
   res <- aggr_by(dt,
@@ -59,9 +59,9 @@ calculate_xtd <- function(x, date_col, last_date, fun = .N, ...) {
     res,
     c('N_t1', 'N_t0', 'MTD_t1', 'MTD_t0', 'YTD_t1', 'YTD_t0'),
     c(
-      as.character(c(last_date, last_date - years(1))),
-      format(c(last_date, last_date - years(1)), '%Y-%m'),
-      format(c(last_date, last_date - years(1)), '%Y')
+      as.character(c(final.date, final.date - years(1))),
+      format(c(final.date, final.date - years(1)), '%Y-%m'),
+      format(c(final.date, final.date - years(1)), '%Y')
     )
   )
   
