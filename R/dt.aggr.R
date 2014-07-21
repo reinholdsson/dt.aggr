@@ -28,7 +28,7 @@ mtd_interval <- function(date, yt = 0) c(date + 1 - day(date) + years(yt), date 
 ytd_interval <- function(date, yt = 0) c(as.Date(paste0(year(date) + yt, "-01-01")), date + years(yt))
 
 #' @export
-calculate_xtd <- function(x, date.col, ...,
+calculate_xtd <- function(x, date.col, by,
 	fun = .N, final.date = max(x[[date.col]]),
 	measures = c('d0', 'd1' ,'m0', 'm1', 'y0', 'y1', 'mtd', 'ytd')
 ) {
@@ -53,7 +53,7 @@ calculate_xtd <- function(x, date.col, ...,
       y0 = .SD[..date.. %between% ytd_interval(get('d', envir), -1), eval(get('fun', envir))]
     ),
   	envir = env,
-    ...
+    by
   )
   
   res[, c('mtd', 'ytd') := list(100 * (m1 / m0 - 1), 100 * (y1 / y0 - 1))]
@@ -66,7 +66,7 @@ calculate_xtd <- function(x, date.col, ...,
 		'MTD %', 'YTD %'
   )
 	
-	res <- res[, measures, with = F]
+	res <- res[, c(by, measures), with = F]
 	cols_i <- match(measures, old_names)
 	
   setnames(
