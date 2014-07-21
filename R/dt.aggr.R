@@ -29,7 +29,7 @@ ytd_interval <- function(date, yt = 0) c(as.Date(paste0(year(date) + yt, "-01-01
 
 #' @export
 calculate_xtd <- function(x, date.col, ...,
-	fun = .N, final.date = max(x[[date.col]]), prev.year.cols = F,
+	fun = .N, final.date = max(x[[date.col]]),
 	measures = c('d0', 'd1' ,'m0', 'm1', 'y0', 'y1', 'mtd', 'ytd')
 ) {
 	dt <- copy(x) # should at least select only relevant columns
@@ -74,10 +74,6 @@ calculate_xtd <- function(x, date.col, ...,
     old_names[cols_i],
   	new_names[cols_i]
   )
-	
-  if (!prev.year.cols) {
-		res <- res[, -grep(sprintf('^%s', year(final.date - years(1))), names(res)), with = F]
-	}
   
   return(res)
 }
