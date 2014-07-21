@@ -29,7 +29,9 @@ ytd_interval <- function(date, yt = 0) c(as.Date(paste0(year(date) + yt, "-01-01
 
 #' @export
 calculate_xtd <- function(x, date.col, ...,
-	fun = .N, final.date = max(x[[date.col]]), prev.year.cols = F) {
+	fun = .N, final.date = max(x[[date.col]]), prev.year.cols = F,
+	measures = c('d0', 'd1' ,'m0', 'm1', 'y0', 'y1', 'mtd', 'ytd')
+) {
 	dt <- copy(x) # should at least select only relevant columns
   setnames(dt, date.col, "..date..")
 	# Should use get (with envir) or quote/eval instead of setnames
@@ -42,28 +44,35 @@ calculate_xtd <- function(x, date.col, ...,
   res <- aggr_by(dt,
     j = list(
       # Current year
-      N_t1 = .SD[..date.. == get('d', envir), eval(get('fun', envir))],
-      MTD_t1 = .SD[..date.. %between% mtd_interval(get('d', envir)), eval(get('fun', envir))],
-      YTD_t1 = .SD[..date.. %between% ytd_interval(get('d', envir)), eval(get('fun', envir))],
+      d1 = .SD[..date.. == get('d', envir), eval(get('fun', envir))],
+      m1 = .SD[..date.. %between% mtd_interval(get('d', envir)), eval(get('fun', envir))],
+      y1 = .SD[..date.. %between% ytd_interval(get('d', envir)), eval(get('fun', envir))],
       # Previous year
-      N_t0 = .SD[..date.. == get('d', envir) - years(1), eval(get('fun', envir))],
-      MTD_t0 = .SD[..date.. %between% mtd_interval(get('d', envir), -1), eval(get('fun', envir))],
-      YTD_t0 = .SD[..date.. %between% ytd_interval(get('d', envir), -1), eval(get('fun', envir))]
+      d0 = .SD[..date.. == get('d', envir) - years(1), eval(get('fun', envir))],
+      m0 = .SD[..date.. %between% mtd_interval(get('d', envir), -1), eval(get('fun', envir))],
+      y0 = .SD[..date.. %between% ytd_interval(get('d', envir), -1), eval(get('fun', envir))]
     ),
   	envir = env,
     ...
   )
   
-  res[, c('MTD %', 'YTD %') := list(100 * (MTD_t1 / MTD_t0 - 1), 100 * (YTD_t1 / YTD_t0 - 1))]
+  res[, c('mtd', 'ytd') := list(100 * (m1 / m0 - 1), 100 * (y1 / y0 - 1))]
   
+	old_names <- c('d1', 'd0', 'm1', 'm0', 'y1', 'y0', 'mtd', 'ytd')
+	new_names <- c(
+	  as.character(c(final.date, final.date - years(1))),
+	  format(c(final.date, final.date - years(1)), '%Y-%m'),
+	  format(c(final.date, final.date - years(1)), '%Y'),
+		'MTD %', 'YTD %'
+  )
+	
+	res <- res[, measures, with = F]
+	cols_i <- match(measures, old_names)
+	
   setnames(
     res,
-    c('N_t1', 'N_t0', 'MTD_t1', 'MTD_t0', 'YTD_t1', 'YTD_t0'),
-    c(
-      as.character(c(final.date, final.date - years(1))),
-      format(c(final.date, final.date - years(1)), '%Y-%m'),
-      format(c(final.date, final.date - years(1)), '%Y')
-    )
+    old_names[cols_i],
+  	new_names[cols_i]
   )
 	
   if (!prev.year.cols) {
